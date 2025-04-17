@@ -47,3 +47,12 @@ def fetch_law_list_and_detail(query, unit):
         import streamlit as st
         st.error(f"🚨 검색 중 오류 발생: {e}")
         return []
+        
+def fetch_law_xml_by_mst(mst):
+    url = f"http://www.law.go.kr/DRF/lawService.do?OC={OC}&target=law&type=XML&mst={mst}"
+    res = requests.get(url)
+    res.encoding = "utf-8"
+    if res.status_code != 200:
+        return None
+    return res.text
+
