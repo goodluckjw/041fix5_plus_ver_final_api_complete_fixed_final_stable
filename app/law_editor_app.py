@@ -36,4 +36,4 @@ with col1:
                         st.markdown(조, unsafe_allow_html=True)
 with col2:
     if st.button("초기화"):
-        st.experimental_rerun()
+        st.rerun()
