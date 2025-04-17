@@ -1,23 +1,30 @@
 import re
 import requests
 import xml.etree.ElementTree as ET
-from urllib.parse import quote
 from utils.xml_parser import parse_law_xml
+import streamlit as st
 
 OC = "chetera"
 BASE = "http://www.law.go.kr"
 
 def fetch_law_list_and_detail(query, unit):
     try:
-        encoded_query = quote(f"{query}")
+        from urllib.parse import quote
+        encoded_query = quote(query)
         url = f"{BASE}/DRF/lawSearch.do?OC={OC}&target=law&type=XML&display=10&search=2&knd=A0002&query={encoded_query}"
         res = requests.get(url)
         res.encoding = "utf-8"
 
         if res.status_code != 200:
+            st.error(f"🚨 목록 요청 실패 (코드 {res.status_code})")
             return []
 
-        root = ET.fromstring(res.content)
+        try:
+            root = ET.fromstring(res.content)
+        except ET.ParseError as e:
+            st.error(f"🚨 XML 파싱 오류: {e}")
+            return []
+
         terms = [t.strip() for t in re.split(r"[,&\-()]", query or "") if t.strip()]
         results = []
 
@@ -36,10 +43,8 @@ def fetch_law_list_and_detail(query, unit):
                         "조문": articles
                     })
         return results
-
     except Exception as e:
-        import streamlit as st
-        st.error(f"🚨 검색 중 오류 발생: {e}")
+        st.error(f"🚨 검색 중 예외 발생: {e}")
         return []
 
 def fetch_law_xml_by_mst(mst):
@@ -49,4 +54,3 @@ def fetch_law_xml_by_mst(mst):
     if res.status_code != 200:
         return None
     return res.text
-
